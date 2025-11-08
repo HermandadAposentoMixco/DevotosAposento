@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Registros - Hermandad</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 10px; background: #f4f4f4; }
+    h1 { text-align: center; font-size: 1.5em; margin-bottom: 10px; }
+    .center { text-align: center; margin-bottom: 10px; }
+    input, button {
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      margin-bottom: 5px;
+    }
+    button {
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover { background: #555; }
+
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+    tr:nth-child(even) { background: #f9f9f9; }
+
+    .table-container { overflow-x: auto; }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr { margin-bottom: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      td { border: none; padding: 5px 0; text-align: right; position: relative; }
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 50%;
+        padding-left: 10px;
+        font-weight: bold;
+        text-align: left;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Panel de Registros - Hermandad Aposento</h1>
+  <div class="center">
+    <input id="buscar" type="text" placeholder="Buscar por nombre, teléfono o turno...">
+    <button id="actualizar">Actualizar registros</button>
+  </div>
+
+  <div class="table-container">
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>CUI</th>
+          <th>Nombres</th>
+          <th>Apellidos</th>
+          <th>Teléfono</th>
+          <th>Correo</th>
+          <th>Dirección</th>
+          <th>Turno</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const tbody = document.querySelector("tbody");
+    const buscar = document.getElementById("buscar");
+    const actualizarBtn = document.getElementById("actualizar");
+
+    // Obtener registros desde localStorage
+    function obtenerRegistros() {
+      return JSON.parse(localStorage.getItem("devotos")) || [];
+    }
+
+    // Mostrar registros en la tabla
+    function mostrar(data) {
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No hay registros guardados</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(d => `
+        <tr>
+          <td data-label="CUI">${d.cui || '-'}</td>
+          <td data-label="Nombres">${d.nombres || '-'}</td>
+          <td data-label="Apellidos">${d.apellidos || '-'}</td>
+          <td data-label="Teléfono">${d.telefono || '-'}</td>
+          <td data-label="Correo">${d.correo || '-'}</td>
+          <td data-label="Dirección">${d.direccion || '-'}</td>
+          <td data-label="Turno">${d.turno || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Filtro de búsqueda
+    buscar.addEventListener("input", e => {
+      const q = e.target.value.toLowerCase().trim();
+      const registros = obtenerRegistros();
+      const filtrados = registros.filter(r => 
+        (r.nombres || '').toLowerCase().includes(q) ||
+        (r.apellidos || '').toLowerCase().includes(q) ||
+        (r.telefono || '').includes(q) ||
+        (r.turno || '').toLowerCase().includes(q)
+      );
+      mostrar(filtrados);
+    });
+
+    // Botón actualizar
+    actualizarBtn.addEventListener("click", () => {
+      buscar.value = "";
+      mostrar(obtenerRegistros());
+    });
+
+    // Mostrar registros al cargar
+    mostrar(obtenerRegistros());
+  </script>
+</body>
+</html>
